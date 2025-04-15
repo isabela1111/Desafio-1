@@ -35,6 +35,7 @@
 #include <iostream>
 #include <QCoreApplication>
 #include <QImage>
+#include "transformaciones.h"
 
 using namespace std;
 unsigned char* loadPixels(QString input, int &width, int &height);
