@@ -60,3 +60,27 @@ void aplicarRotacionIzquierda(unsigned char* imagen, int bits, int size) {
         imagen[i] = rotarIzquierda(imagen[i], bits);
     }
 }
+
+
+// Verificación del enmascaramiento S(k) = ID(k+s) + M(k)
+bool verificarEnmascaramiento(
+    unsigned char* imagenTransformada, //Arreglo de los bytes RGB de la imagen despues de ser transformada (XOR,Desplazamiento o Rotacion)
+    unsigned char* mascara, //Arreglo de los bytes RGB de la mascara M.bmp
+    unsigned int* datosEnmascarados,//Arreglo con los valores RGB del .txt a comparar
+    int seed, //semilla S que esta en la primera linea del .txt que se esta comparando
+    int mascaraSize, //cantidad total de bytes que hay en la mascara M.bmp
+    int totalSizeImagen)
+{
+    if (seed + mascaraSize > totalSizeImagen) {
+        return false; //Verifica que no esten fuera del rango
+    }
+
+    for (int i = 0; i < mascaraSize; i++) {
+        int suma = imagenTransformada[i + seed] + mascara[i];
+        if (suma != (int)datosEnmascarados[i]) {
+            return false; //Si el enmascaramiento no es parecido al .txt, se regresa que esa no es la transformacion correcta
+        }
+    }
+
+    return true; //Si todo es parecido, regresa que la transformacion es correcta
+}
