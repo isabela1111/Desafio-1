@@ -36,6 +36,10 @@
 #include <QCoreApplication>
 #include <QImage>
 #include <QString>
+#include <QFile>
+#include <QString>
+#include <QByteArray>
+#include <cstring>
 #include "utilidades.h"
 #include "transformaciones.h"
 #include "experimentos.h"
@@ -56,6 +60,16 @@ int main()
     // Carga la imagen BMP en memoria dinámica y obtiene ancho y alto
     unsigned char *pixelData = loadPixels(archivoEntrada, width, height);
 
+    //Identificacion de archivos .txt que se proporcionaron para este caso
+    int cantidadTxt = 0;
+    char** archivosTxt = detectarArchivosDeEnmascaramiento(cantidadTxt);
+    //Se inicia bucle para ir observando el contenido del .txt actual y comparando cada transformacion con el hasta hallar la correspondiente y pasar al siguiente .txt
+    for (int i = cantidadTxt - 1; i >= 0; --i) {
+        int seed = 0;
+        int n_pixels = 0;
+        unsigned int* datos = loadSeedMasking(archivosTxt[i], seed, n_pixels);
+        //Resto del codigo por desarrollarse
+    }
     // Simula una modificación de la imagen asignando valores RGB incrementales
     // (Esto es solo un ejemplo de manipulación artificial)
     for (int i = 0; i < width * height * 3; i += 3) {
@@ -282,6 +296,51 @@ unsigned int* loadSeedMasking(const char* nombreArchivo, int &seed, int &n_pixel
     return RGB;
 }
 
+
+// Función que detecta los archivos de enmascaramiento y saber la cantidad que hay
+char** detectarArchivosDeEnmascaramiento(int& cantidad) {
+    int capacidad = 10;  // Capacidad inicial del arreglo de nombres de archivos
+    char** archivos = new char*[capacidad]; // Arreglo dinámico para almacenar nombres de archivos
+    cantidad = 0; // Contador de archivos encontrados
+
+    // Bucle infinito que va probando con M1.txt, M2.txt, etc... ya que tenemos el patron de que las pistas son nombradas como M junto al numero de su orden
+    for (int i = 1;; ++i) {
+        // Crea el nombre del archivo como QString: "M1.txt", "M2.txt", etc...
+        QString nombre = QString("M%1.txt").arg(i);
+
+        // Verifica si el archivo existe en el sistema
+        QFile archivo(nombre);
+        if (!archivo.exists()) break; // Si no existe nos detenemos ahi
+
+        // Convierte el QString a arreglo de caracteres (char*) usando QByteArray
+        QByteArray nombreBytes = nombre.toLocal8Bit();
+
+        // Reservamos espacio y copiamos el nombre al arreglo de nombres
+        archivos[cantidad] = new char[nombreBytes.size() + 1]; // +1 para el carácter nulo
+        strcpy(archivos[cantidad], nombreBytes.constData()); // Copia el nombre como C-string
+
+        cantidad++; // Aumentamos el contador de archivos detectados
+
+        // Si llegamos al límite de capacidad significando que hay mas de una decena de pistas , duplicamos el tamaño del arr
+        if (cantidad == capacidad) {
+            int nuevaCapacidad = capacidad * 2;
+            char** nuevo = new char*[nuevaCapacidad]; // Nuevo arreglo más grande
+
+            // Copiamos todos los nombres anteriores al nuevo arreglo
+            for (int j = 0; j < cantidad; ++j) {
+                nuevo[j] = archivos[j];
+            }
+
+            // Liberamos el arreglo anterior y reemplazamos por el nuevo
+            delete[] archivos;
+            archivos = nuevo;
+            capacidad = nuevaCapacidad;
+        }
+    }
+
+    // Retornamos el arreglo de nombres de archivos encontrados
+    return archivos;
+}
 
 
 
