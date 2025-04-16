@@ -35,12 +35,13 @@
 #include <iostream>
 #include <QCoreApplication>
 #include <QImage>
+#include <QString>
+#include "utilidades.h"
 #include "transformaciones.h"
+#include "experimentos.h"
+
 
 using namespace std;
-unsigned char* loadPixels(QString input, int &width, int &height);
-bool exportImage(unsigned char* pixelData, int width,int height, QString archivoSalida);
-unsigned int* loadSeedMasking(const char* nombreArchivo, int &seed, int &n_pixels);
 
 int main()
 {
@@ -93,6 +94,18 @@ int main()
         delete[] maskingData;
         maskingData = nullptr;
     }
+
+
+    // Llamada a la función realizarExperimentos
+    // Descomentar las siguientes líneas si  se desea realizar los experimentos de transformación (XOR, rotación, desplazamiento).
+    // Comentario: La función realizarExperimentos toma la imagen original y la imagen enmascarada y realiza transformaciones.
+    /*
+    unsigned char* imagenOriginal = loadPixels("I_O.bmp", width, height);
+    unsigned char* imagenMascarada = loadPixels("imagenMascarada.bmp", width, height);
+    realizarExperimentos(imagenOriginal, imagenMascarada, width, height);
+    delete[] imagenOriginal;
+    delete[] imagenMascarada;
+    */
 
     return 0; // Fin del programa
 }

@@ -1,6 +1,4 @@
-#include <iostream>
 #include "transformaciones.h"
-using namespace std;
 
 // XOR
 // Realiza la operación bit a bit XOR entre dos arreglos de bytes.

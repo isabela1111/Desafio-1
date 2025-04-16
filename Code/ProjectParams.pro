@@ -1,7 +1,12 @@
-QT += core gui
-CONFIG += console c++17
-SOURCES += main.cpp \
-    Transformaciones.cpp
+QT += core
+CONFIG += console
+CONFIG -= app_bundle
 
-HEADERS += \
-    Transformaciones.h
+TARGET = mi_proyecto
+INCLUDEPATH += $$PWD
+SOURCES += main.cpp \
+           transformaciones.cpp \
+           experimentos.cpp
+HEADERS += utilidades.h \
+           transformaciones.h \
+           experimentos.h
