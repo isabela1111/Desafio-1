@@ -1,4 +1,11 @@
 #include "transformaciones.h"
+#include "utilidades.h"
+#include <iostream>
+#include <cstring>
+#include <QString>
+
+
+using namespace std;
 
 // XOR
 // Realiza la operación bit a bit XOR entre dos arreglos de bytes.
@@ -36,7 +43,7 @@ void aplicarDesplaDerecha(unsigned char* imagen, int bits, int size) {
 }
 
 // ROTACIONES
-// Rota bits hacia la derecha. Los bits que salen por la derecha entran por la izquierda.
+// Rota bits hacia la derecha, Los bits que salen por la derecha entran por la izquierda.
 unsigned char rotarDerecha(unsigned char byte, int bits) {
     return (byte >> bits) | (byte << (8 - bits));
 }
@@ -59,6 +66,7 @@ void aplicarRotacionIzquierda(unsigned char* imagen, int bits, int size) {
         imagen[i] = rotarIzquierda(imagen[i], bits);
     }
 }
+
 
 // Verifica si la transformación aplicada es correcta comparando el resultado con los datos esperados del .txt
 bool verificarTransformacionCorrecta(
@@ -86,4 +94,69 @@ bool verificarTransformacionCorrecta(
 
     return true;
 }
+
+// Esta función aplica las operaciones bit a bit, verifica si las transformaciones son correctas y exporta las imágenes resultantes si lo son.
+// Se usa una máscara y otros parámetros para la verificación de las transformaciones.
+// Parámetros:
+// - imagenTransformada: Imagen original transformada.
+// - mascara: Máscara para la verificación de transformaciones.
+// - width, height: Dimensiones de la imagen.
+// - totalSize: Tamaño total de la imagen en bytes.
+// - datos: Datos de referencia para la verificación.
+// - seed: Semilla para la verificación.
+// - mascaraSize: Tamaño de la máscara.
+// - nombreArchivoTXT: Nombre del archivo de la máscara.
+void probarTransformaciones(unsigned char* imagenTransformada, unsigned char* mascara, int width, int height,
+                            int totalSize,unsigned int* datos, int seed, int mascaraSize, const char* nombreArchivoTXT){
+
+    unsigned char* temp = new unsigned char[totalSize];
+    unsigned char* resultadoXOR = new unsigned char[totalSize];
+    QString archivoSalida = "I_O.bmp";
+
+    cout << "\nProbando con: " << nombreArchivoTXT << " | Seed: " << seed << endl;
+
+    // XOR
+    aplicarXOR(imagenTransformada, mascara, resultadoXOR, totalSize);
+    if (verificarTransformacionCorrecta(resultadoXOR, mascara, datos, seed, mascaraSize, totalSize)) {
+        exportImage(resultadoXOR, width, height, archivoSalida);
+        cout << "Transformación detectada: XOR" << endl;
+    }
+
+    // Rotación izquierda
+    memcpy(temp, imagenTransformada, totalSize);
+    aplicarRotacionIzquierda(temp, 3, totalSize);
+    if (verificarTransformacionCorrecta(temp, mascara, datos, seed, mascaraSize, totalSize)) {
+        exportImage(temp, width, height, archivoSalida);
+        cout << "Transformación detectada: Rotación Izquierda" << endl;
+    }
+
+    // Rotación derecha
+    memcpy(temp, imagenTransformada, totalSize);
+    aplicarRotacionDerecha(temp, 3, totalSize);
+    if (verificarTransformacionCorrecta(temp, mascara, datos, seed, mascaraSize, totalSize)) {
+        exportImage(temp, width, height, archivoSalida);
+        cout << " Transformación detectada: Rotación Derecha" << endl;
+    }
+
+    // Desplazamiento izquierda
+    memcpy(temp, imagenTransformada, totalSize);
+    aplicarDesplaIzquierda(temp, 2, totalSize);
+    if (verificarTransformacionCorrecta(temp, mascara, datos, seed, mascaraSize, totalSize)) {
+        exportImage(temp, width, height, archivoSalida);
+        cout << "Transformación detectada: Desplazamiento Izquierda" << endl;
+    }
+
+    // Desplazamiento derecha
+    memcpy(temp, imagenTransformada, totalSize);
+    aplicarDesplaDerecha(temp, 2, totalSize);
+    if (verificarTransformacionCorrecta(temp, mascara, datos, seed, mascaraSize, totalSize)) {
+        exportImage(temp, width, height, archivoSalida);
+        cout << " Transformación detectada: Desplazamiento Derecha" << endl;
+    }
+
+    delete[] temp;
+    delete[] resultadoXOR;
+}
+
+
 
