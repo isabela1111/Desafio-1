@@ -31,7 +31,6 @@
  * Asistencia de ChatGPT para mejorar la forma y presentación del código fuente
  */
 
-#include <fstream>
 #include <iostream>
 #include <QCoreApplication>
 #include <QImage>
@@ -63,18 +62,30 @@ int main()
     //Identificacion de archivos .txt que se proporcionaron para este caso
     int cantidadTxt = 0;
     char** archivosTxt = detectarArchivosDeEnmascaramiento(cantidadTxt);
+
     //Se inicia bucle para ir observando el contenido del .txt actual y comparando cada transformacion con el hasta hallar la correspondiente y pasar al siguiente .txt
     for (int i = cantidadTxt - 1; i >= 0; --i) {
         int seed = 0;
         int n_pixels = 0;
+
         unsigned int* datos = loadSeedMasking(archivosTxt[i], seed, n_pixels);
-        //Resto del codigo por desarrollarse
+        // Muestra los primeros píxeles enmascarados, hasta 5 píxeles maximo
+        cout << "\n[" << archivosTxt[i] << "] Seed: " << seed << ", Píxeles: " << n_pixels << endl;
+        for (int j = 0; j < min(n_pixels * 3, 15); j += 3) {
+            cout << "Pixel " << j / 3 << ": ("
+                 << datos[j] << ", "
+                 << datos[j + 1] << ", "
+                 << datos[j + 2] << ")" << endl;
+        }
+        // Libera los datos de este archivo
+        delete[] datos;
     }
     //Se borra y libera toda la memoria relacionada a los .txts una vez se esta terminando el programa (parte final de programa "temporal")
     for (int i = 0; i < cantidadTxt; ++i) {
         delete[] archivosTxt[i];
     }
     delete[] archivosTxt;
+
     // Simula una modificación de la imagen asignando valores RGB incrementales
     // (Esto es solo un ejemplo de manipulación artificial)
     for (int i = 0; i < width * height * 3; i += 3) {
