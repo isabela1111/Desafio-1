@@ -60,26 +60,30 @@ void aplicarRotacionIzquierda(unsigned char* imagen, int bits, int size) {
     }
 }
 
-
-// Verificación del enmascaramiento S(k) = ID(k+s) + M(k)
-bool verificarEnmascaramiento(
-    unsigned char* imagenTransformada, //Arreglo de los bytes RGB de la imagen despues de ser transformada (XOR,Desplazamiento o Rotacion)
-    unsigned char* mascara, //Arreglo de los bytes RGB de la mascara M.bmp
-    unsigned int* datosEnmascarados,//Arreglo con los valores RGB del .txt a comparar
-    int seed, //semilla S que esta en la primera linea del .txt que se esta comparando
-    int mascaraSize, //cantidad total de bytes que hay en la mascara M.bmp
-    int totalSizeImagen)
-{
+// Verifica si la transformación aplicada es correcta comparando el resultado con los datos esperados del .txt
+bool verificarTransformacionCorrecta(
+    unsigned char* imagenTransformada,  // Imagen luego de aplicar una operaccion bit a bit
+    unsigned char* mascara,             // Imagen máscara (M.bmp), misma dimensión que la original
+    unsigned int* datosEnmascarados,    // Datos RGB esperados del .txt (después de aplicar S(k) = ID(k+s) + M(k))
+    int seed,                           // Semilla que indica desde dónde empezar en la imagen transformada
+    int mascaraSize,                    // Cantidad total de bytes (RGB) en la máscara
+    int totalSizeImagen                 // Tamaño total de la imagen transformada (en bytes)
+    ) {
+    // Verifica que no se intente acceder fuera del arreglo de la imagen transformada
     if (seed + mascaraSize > totalSizeImagen) {
-        return false; //Verifica que no esten fuera del rango
+        return false;
     }
 
+    // Compara byte por byte: (imagenTransformada[k + seed] + mascara[k]) debe ser igual al dato esperado
     for (int i = 0; i < mascaraSize; i++) {
         int suma = imagenTransformada[i + seed] + mascara[i];
+
         if (suma != (int)datosEnmascarados[i]) {
-            return false; //Si el enmascaramiento no es parecido al .txt, se regresa que esa no es la transformacion correcta
+            // Si un solo valor no coincide, no es la transformación correcta
+            return false;
         }
     }
 
-    return true; //Si todo es parecido, regresa que la transformacion es correcta
+    return true;
 }
+
