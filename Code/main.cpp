@@ -137,3 +137,97 @@ int main()
 
         return 0; // Fin del programa
 }
+
+//Sugerencia de posible main (comentado por si se requiere cambios y no afectar el actual)
+//Si se tiene pensado otro main o mas funciones a implementar, se puede descartar
+/*
+int main() {
+    QString archivoEntrada = "I_D.bmp";//Archivo de imagen 
+    QString archivoMascara = "M.bmp";  //Archivo de mascara
+    QString archivoSalida = "I_O.bmp"; // Archivo final
+
+    // Variables para ancho y alto de la imagen
+    int width = 0, height = 0;
+
+    // Carga la imagen transformada (I_D.bmp)
+    unsigned char* imagenTransformada = loadPixels(archivoEntrada, width, height); 
+    if (!imagenTransformada) return -1;
+
+    // Carga la imagen de la máscara (M.bmp)
+    int widthM = 0, heightM = 0;
+    unsigned char* mascara = loadPixels(archivoMascara, widthM, heightM);
+    if (!mascara) return -1;
+
+    // Tamaño total de la imagen (ancho * alto * 3 canales RGB)
+    int totalSize = width * height * 3;
+    int mascaraSize = widthM * heightM * 3;
+
+    // Detecta cuántos archivos de enmascaramiento (M1.txt, M2.txt, ...) hay
+    int cantidadTxt = 0;
+    char** archivosTxt = detectarArchivosDeEnmascaramiento(cantidadTxt);
+
+    // Recorre los archivos .txt de forma descendente (reversión)
+    for (int i = cantidadTxt - 1; i >= 0; --i) {
+        int seed = 0, n_pixels = 0;
+
+        // Carga los datos enmascarados del .txt actual
+        unsigned int* datos = loadSeedMasking(archivosTxt[i], seed, n_pixels);
+        if (!datos) continue;
+
+        // Crea buffers temporales para realizar transformaciones
+        unsigned char* temp = new unsigned char[totalSize];
+        unsigned char* resultadoXOR = new unsigned char[totalSize]; //Se guardaria los resultados de los XOR aqui para evitar algun problema al tener esta operacion necesitar dos entradas y una salida a comparacion de las otras transformaciones
+
+        //Se prueba XOR para el archivo .txt
+        aplicarXOR(imagenTransformada, mascara, resultadoXOR, totalSize);
+        if (verificarTransformacionCorrecta(resultadoXOR, mascara, datos, seed, mascaraSize, totalSize)) {
+            exportImage(resultadoXOR, width, height, archivoSalida);
+        }
+
+        //Se prueba rotacion izquierda
+        memcpy(temp, imagenTransformada, totalSize); //Genera una copia temporal en la memoria de la "imagen" actual para evitar afectar pernamente la original
+        aplicarRotacionIzquierda(temp, 3, totalSize);
+        if (verificarTransformacionCorrecta(temp, mascara, datos, seed, mascaraSize, totalSize)) {
+            exportImage(temp, width, height, archivoSalida);
+        }
+
+        //Se prueba rotacion derecha
+        memcpy(temp, imagenTransformada, totalSize); //Copia temporal en la memoria
+        aplicarRotacionDerecha(temp, 3, totalSize);
+        if (verificarTransformacionCorrecta(temp, mascara, datos, seed, mascaraSize, totalSize)) {
+            exportImage(temp, width, height, archivoSalida);
+        }
+
+        //Se prueba desplazamiento izquierda
+        memcpy(temp, imagenTransformada, totalSize);
+        aplicarDesplaIzquierda(temp, 2, totalSize);
+        if (verificarTransformacionCorrecta(temp, mascara, datos, seed, mascaraSize, totalSize)) {
+            cout << "Transformación correcta: Desplazamiento Izquierda con " << archivosTxt[i] << endl;
+            exportImage(temp, width, height, archivoSalida);
+        }
+
+        //Se prueba desplazamiento derecha
+        memcpy(temp, imagenTransformada, totalSize);
+        aplicarDesplaDerecha(temp, 2, totalSize);
+        if (verificarTransformacionCorrecta(temp, mascara, datos, seed, mascaraSize, totalSize)) {
+            exportImage(temp, width, height, archivoSalida); 
+        }
+
+        // Libera memoria usada en esta iteración
+        delete[] temp;
+        delete[] resultadoXOR;
+        delete[] datos;
+    }
+    //Cada vez que se itera en el bucle la imagen exportada cambia al estar sobreescribiendose sus datos, asi cambiando siempre hasta que se llegue al ultimo .txt y se halle la imagen original.
+
+    // Libera todos los nombres de archivos y buffers globales
+    for (int i = 0; i < cantidadTxt; ++i) {
+        delete[] archivosTxt[i];
+    }
+    delete[] archivosTxt;
+    delete[] imagenTransformada;
+    delete[] mascara;
+
+    return 0;
+}
+*/
