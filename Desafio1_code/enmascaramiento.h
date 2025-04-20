@@ -4,8 +4,9 @@
 // Función para cargar la máscara de enmascaramiento desde un archivo
 unsigned int* loadSeedMasking(const char* nombreArchivo, int &seed, int &n_pixels);
 
-// Función que detecta los archivos M0.txt, M1.txt,..
+// Función que detecta los archivos M0.txt, M1.txt,....
 char** detectarArchivosDeEnmascaramiento(const QString& carpeta, int& cantidad);
+
 
 // Verifica si una transformación es válida comparando con los datos del .txt
 bool verificarEnmascaramiento(

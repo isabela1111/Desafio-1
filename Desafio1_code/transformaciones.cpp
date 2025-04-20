@@ -1,6 +1,7 @@
 #include "transformaciones.h"
 #include "utilidades.h"
-#include <iostream>
+#include"enmascaramiento.h"
+#include <QDebug>
 #include <cstring>
 #include <QString>
 
@@ -95,68 +96,58 @@ bool verificarTransformacionCorrecta(
     return true;
 }
 
-// Esta función aplica las operaciones bit a bit, verifica si las transformaciones son correctas y exporta las imágenes resultantes si lo son.
-// Se usa una máscara y otros parámetros para la verificación de las transformaciones.
-// Parámetros:
-// - imagenTransformada: Imagen original transformada.
-// - mascara: Máscara para la verificación de transformaciones.
-// - width, height: Dimensiones de la imagen.
-// - totalSize: Tamaño total de la imagen en bytes.
-// - datos: Datos de referencia para la verificación.
-// - seed: Semilla para la verificación.
-// - mascaraSize: Tamaño de la máscara.
-// - nombreArchivoTXT: Nombre del archivo de la máscara.
-void probarTransformaciones(unsigned char* imagenTransformada, unsigned char* mascara, int width, int height,
-                            int totalSize,unsigned int* datos, int seed, int mascaraSize, const char* nombreArchivoTXT){
-
-    unsigned char* temp = new unsigned char[totalSize];
-    unsigned char* resultadoXOR = new unsigned char[totalSize];
-    QString archivoSalida = "I_O.bmp";
-
-    cout << "\nProbando con: " << nombreArchivoTXT << " | Seed: " << seed << endl;
+void probarTransformaciones(unsigned char* imagenTransformada, unsigned char* mascara,
+                            int width, int height, int totalSize,
+                            unsigned int* datos, int seed, int mascaraSize,
+                            const char* nombreArchivoTXT)
+{
+    unsigned char* copia = new unsigned char[totalSize];
 
     // XOR
-    aplicarXOR(imagenTransformada, mascara, resultadoXOR, totalSize);
-    if (verificarTransformacionCorrecta(resultadoXOR, mascara, datos, seed, mascaraSize, totalSize)) {
-        exportImage(resultadoXOR, width, height, archivoSalida);
-        cout << "Transformación detectada: XOR" << endl;
+    memcpy(copia, imagenTransformada, totalSize);
+    aplicarXOR(copia, mascara, copia, totalSize);
+    if (verificarTransformacionCorrecta(copia, mascara, datos, seed, mascaraSize, totalSize)) {
+        memcpy(imagenTransformada, copia, totalSize);
+        delete[] copia;
+        return;
     }
 
-    // Rotación izquierda
-    memcpy(temp, imagenTransformada, totalSize);
-    aplicarRotacionIzquierda(temp, 3, totalSize);
-    if (verificarTransformacionCorrecta(temp, mascara, datos, seed, mascaraSize, totalSize)) {
-        exportImage(temp, width, height, archivoSalida);
-        cout << "Transformación detectada: Rotación Izquierda" << endl;
+    // Rotación a la izquierda
+    memcpy(copia, imagenTransformada, totalSize);
+    aplicarRotacionIzquierda(copia, 1, totalSize);
+    if (verificarTransformacionCorrecta(copia, mascara, datos, seed, mascaraSize, totalSize)) {
+        memcpy(imagenTransformada, copia, totalSize);
+        delete[] copia;
+        return;
     }
 
-    // Rotación derecha
-    memcpy(temp, imagenTransformada, totalSize);
-    aplicarRotacionDerecha(temp, 3, totalSize);
-    if (verificarTransformacionCorrecta(temp, mascara, datos, seed, mascaraSize, totalSize)) {
-        exportImage(temp, width, height, archivoSalida);
-        cout << " Transformación detectada: Rotación Derecha" << endl;
+    // Rotación a la derecha
+    memcpy(copia, imagenTransformada, totalSize);
+    aplicarRotacionDerecha(copia, 1, totalSize);
+    if (verificarTransformacionCorrecta(copia, mascara, datos, seed, mascaraSize, totalSize)) {
+        memcpy(imagenTransformada, copia, totalSize);
+        delete[] copia;
+        return;
     }
 
-    // Desplazamiento izquierda
-    memcpy(temp, imagenTransformada, totalSize);
-    aplicarDesplaIzquierda(temp, 2, totalSize);
-    if (verificarTransformacionCorrecta(temp, mascara, datos, seed, mascaraSize, totalSize)) {
-        exportImage(temp, width, height, archivoSalida);
-        cout << "Transformación detectada: Desplazamiento Izquierda" << endl;
+    // Desplazamiento a la izquierda
+    memcpy(copia, imagenTransformada, totalSize);
+    aplicarDesplaIzquierda(copia, 1, totalSize);
+    if (verificarTransformacionCorrecta(copia, mascara, datos, seed, mascaraSize, totalSize)) {
+        memcpy(imagenTransformada, copia, totalSize);
+        delete[] copia;
+        return;
     }
 
-    // Desplazamiento derecha
-    memcpy(temp, imagenTransformada, totalSize);
-    aplicarDesplaDerecha(temp, 2, totalSize);
-    if (verificarTransformacionCorrecta(temp, mascara, datos, seed, mascaraSize, totalSize)) {
-        exportImage(temp, width, height, archivoSalida);
-        cout << " Transformación detectada: Desplazamiento Derecha" << endl;
+    // Desplazamiento a la derecha
+    memcpy(copia, imagenTransformada, totalSize);
+    aplicarDesplaDerecha(copia, 1, totalSize);
+    if (verificarTransformacionCorrecta(copia, mascara, datos, seed, mascaraSize, totalSize)) {
+        memcpy(imagenTransformada, copia, totalSize);
+        delete[] copia;
+        return;
     }
 
-    delete[] temp;
-    delete[] resultadoXOR;
+    qDebug() << "Ninguna transformación válida encontrada para" << nombreArchivoTXT;
+    delete[] copia;
 }
-
-
-

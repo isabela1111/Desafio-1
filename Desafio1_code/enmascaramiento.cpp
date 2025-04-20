@@ -5,29 +5,34 @@
 #include <fstream>
 #include <cstring>
 using namespace std;
-
-// Verificación del enmascaramiento S(k) = ID(k+s) + M(k)
+// Verificación del enmascaramiento S(k) = ID(k+s) + M(k) mod 256
 bool verificarEnmascaramiento(
-    unsigned char* imagenTransformada, //Arreglo de los bytes RGB de la imagen despues de ser transformada (XOR,Desplazamiento o Rotacion)
-    unsigned char* mascara, //Arreglo de los bytes RGB de la mascara M.bmp
-    unsigned int* datosEnmascarados,//Arreglo con los valores RGB del .txt a comparar
-    int seed, //semilla S que esta en la primera linea del .txt que se esta comparando
-    int mascaraSize, //cantidad total de bytes que hay en la mascara M.bmp
-    int totalSizeImagen)
+    unsigned char* imagenTransformada, // Arreglo de los bytes RGB de la imagen después de ser transformada (XOR, Desplazamiento o Rotación)
+    unsigned char* mascara, // Arreglo de los bytes RGB de la máscara M.bmp
+    unsigned int* datosEnmascarados, // Arreglo con los valores RGB del .txt a comparar
+    int seed, // Semilla S que está en la primera línea del .txt que se está comparando
+    int mascaraSize, // Cantidad total de bytes que hay en la máscara M.bmp
+    int totalSizeImagen) // Tamaño total de la imagen transformada (en bytes)
 {
+    // Verifica que no se intente acceder fuera del arreglo de la imagen transformada
     if (seed + mascaraSize > totalSizeImagen) {
-        return false; //Verifica que no esten fuera del rango
+        return false; // Si la semilla y la máscara exceden el tamaño de la imagen, se devuelve false
     }
 
+    // Compara byte por byte: (imagenTransformada[k + seed] + mascara[k]) mod 256 debe ser igual al dato esperado
     for (int i = 0; i < mascaraSize; i++) {
-        int suma = imagenTransformada[i + seed] + mascara[i];
+        // Aplica la fórmula (imagenTransformada + mascara) mod 256
+        int suma = (imagenTransformada[i + seed] + mascara[i]) & 0xFF;  // ← mod 256
+
+        // Si la suma no es igual a los datos enmascarados esperados, no es la transformación correcta
         if (suma != (int)datosEnmascarados[i]) {
-            return false; //Si el enmascaramiento no es parecido al .txt, se regresa que esa no es la transformacion correcta
+            return false; // Si un solo valor no coincide, la transformación no es correcta
         }
     }
 
-    return true; //Si todo es parecido, regresa que la transformacion es correcta
+    return true; // Si todos los valores coinciden, la transformación es correcta
 }
+
 
 unsigned int* loadSeedMasking(const char* nombreArchivo, int &seed, int &n_pixels){
     /*
@@ -111,7 +116,7 @@ char** detectarArchivosDeEnmascaramiento(const QString& carpeta, int& cantidad) 
     char** archivos = new char*[capacidad]; // Arreglo dinámico para almacenar nombres de archivos
     cantidad = 0; // Contador de archivos encontrados
 
-    // Bucle infinito que va probando con M0.txt, M1.txt ...
+    // Bucle infinito que va probando con M1.txt, M2.txt, etc... ya que tenemos el patrón de que las pistas son nombradas como M junto al número de su orden
     for (int i = 0;; ++i) {
         // Crea el nombre del archivo como QString: "M1.txt", "M2.txt", etc...
         QString nombre = QString("M%1.txt").arg(i);
@@ -121,18 +126,25 @@ char** detectarArchivosDeEnmascaramiento(const QString& carpeta, int& cantidad) 
 
         // Verifica si el archivo existe en el sistema
         QFile archivo(rutaCompleta);
-        if (!archivo.exists()) break; // Si no existe nos detenemos aquí
+        if (!archivo.exists()) break; // Si no existe nos detenemos ahí
 
         // Convierte el QString a arreglo de caracteres (char*) usando QByteArray
         QByteArray nombreBytes = rutaCompleta.toLocal8Bit();
 
-        // Si llegamos al límite de capacidad, duplicamos el tamaño del arreglo
+        // Reservamos espacio y copiamos el nombre al arreglo de nombres
+        archivos[cantidad] = new char[nombreBytes.size() + 1]; // +1 para el carácter nulo
+        strncpy(archivos[cantidad], nombreBytes.constData(), nombreBytes.size());
+        archivos[cantidad][nombreBytes.size()] = '\0';  // Asegurarse de que el string termine en '\0'
+
+        cantidad++; // Aumentamos el contador de archivos detectados
+
+        // Si llegamos al límite de capacidad significando que hay más de una decena de pistas, duplicamos el tamaño del arreglo
         if (cantidad == capacidad) {
             int nuevaCapacidad = capacidad * 2;
             char** nuevo = new char*[nuevaCapacidad]; // Nuevo arreglo más grande
 
             // Copiamos todos los nombres anteriores al nuevo arreglo
-            for (int j = 0; j < capacidad; ++j) {
+            for (int j = 0; j < cantidad; ++j) {
                 nuevo[j] = archivos[j];
             }
 
@@ -141,13 +153,7 @@ char** detectarArchivosDeEnmascaramiento(const QString& carpeta, int& cantidad) 
             archivos = nuevo;
             capacidad = nuevaCapacidad;
         }
-
-        // Reservamos espacio y copiamos el nombre al arreglo de nombres
-        archivos[cantidad] = new char[nombreBytes.size() + 1]; // +1 para el carácter nulo
-        strncpy(archivos[cantidad], nombreBytes.constData(), nombreBytes.size());
-        archivos[cantidad][nombreBytes.size()] = '\0';  // Asegurarse de que el string termine en '\0'
-
-        cantidad++; // Aumentamos el contador de archivos detectados
     }
+
     return archivos; // Finalmente retornamos el arreglo con los nombres detectados
 }
