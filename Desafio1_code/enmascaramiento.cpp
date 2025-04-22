@@ -117,7 +117,7 @@ char** detectarArchivosDeEnmascaramiento(const QString& carpeta, int& cantidad) 
     cantidad = 0; // Contador de archivos encontrados
 
     // Bucle infinito que va probando con M1.txt, M2.txt, etc... ya que tenemos el patrón de que las pistas son nombradas como M junto al número de su orden
-    for (int i = 0;; ++i) {
+    for (int i = 1;; ++i) {
         // Crea el nombre del archivo como QString: "M1.txt", "M2.txt", etc...
         QString nombre = QString("M%1.txt").arg(i);
 
