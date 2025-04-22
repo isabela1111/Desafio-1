@@ -112,40 +112,36 @@ void probarTransformaciones(unsigned char* imagenTransformada, unsigned char* ma
         return;
     }
 
-    // Rotación a la izquierda
-    memcpy(copia, imagenTransformada, totalSize);
-    aplicarRotacionIzquierda(copia, 1, totalSize);
-    if (verificarTransformacionCorrecta(copia, mascara, datos, seed, mascaraSize, totalSize)) {
-        memcpy(imagenTransformada, copia, totalSize);
-        delete[] copia;
-        return;
-    }
-
-    // Rotación a la derecha
-    memcpy(copia, imagenTransformada, totalSize);
-    aplicarRotacionDerecha(copia, 1, totalSize);
-    if (verificarTransformacionCorrecta(copia, mascara, datos, seed, mascaraSize, totalSize)) {
-        memcpy(imagenTransformada, copia, totalSize);
-        delete[] copia;
-        return;
-    }
-
-    // Desplazamiento a la izquierda
-    memcpy(copia, imagenTransformada, totalSize);
-    aplicarDesplaIzquierda(copia, 1, totalSize);
-    if (verificarTransformacionCorrecta(copia, mascara, datos, seed, mascaraSize, totalSize)) {
-        memcpy(imagenTransformada, copia, totalSize);
-        delete[] copia;
-        return;
-    }
-
-    // Desplazamiento a la derecha
-    memcpy(copia, imagenTransformada, totalSize);
-    aplicarDesplaDerecha(copia, 1, totalSize);
-    if (verificarTransformacionCorrecta(copia, mascara, datos, seed, mascaraSize, totalSize)) {
-        memcpy(imagenTransformada, copia, totalSize);
-        delete[] copia;
-        return;
+    //Se crea un bucle para que analice a cuantos bits se desplazo o se roto la imagen de acuerdo .txt
+    for (int bits = 1; bits <= 8; ++bits) {
+        memcpy(copia, imagenTransformada, totalSize);
+        aplicarRotacionDerecha(copia, bits, totalSize);
+        if (verificarEnmascaramiento(copia, mascara, datos, seed, mascaraSize, totalSize)) {
+            memcpy(imagenTransformada, copia, totalSize);
+            delete[] copia;
+            break;
+        }
+        memcpy(copia, imagenTransformada, totalSize);
+        aplicarRotacionIzquierda(copia, bits, totalSize);
+        if (verificarEnmascaramiento(copia, mascara, datos, seed, mascaraSize, totalSize)) {
+            memcpy(imagenTransformada, copia, totalSize);
+            delete[] copia;
+            break;
+        }
+        memcpy(copia, imagenTransformada, totalSize);
+        aplicarDesplaDerecha(copia, bits, totalSize);
+        if (verificarEnmascaramiento(copia, mascara, datos, seed, mascaraSize, totalSize)) {
+            memcpy(imagenTransformada, copia, totalSize);
+            delete[] copia;
+            break;
+        }
+        memcpy(copia, imagenTransformada, totalSize);
+        aplicarDesplaIzquierda(copia, bits, totalSize);
+        if (verificarEnmascaramiento(copia, mascara, datos, seed, mascaraSize, totalSize)) {
+            memcpy(imagenTransformada, copia, totalSize);
+            delete[] copia;
+            break;
+        }
     }
 
     qDebug() << "Ninguna transformación válida encontrada para" << nombreArchivoTXT;
