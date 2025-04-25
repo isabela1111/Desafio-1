@@ -1,4 +1,4 @@
-#include "QString"
+#include <qstring.h>
 #include <QImage>
 #include <iostream>
 #include <cstring>
@@ -57,10 +57,6 @@ unsigned char* loadPixels(QString input, int &width, int &height){
     return pixelData;
 }
 
-#include <QImage>
-#include <QString>
-#include <iostream>
-
 bool exportImage(unsigned char* pixelData, int width, int height, const QString& archivoSalida)
  {
     /*
@@ -113,3 +109,23 @@ bool exportImage(unsigned char* pixelData, int width, int height, const QString&
         return true; // Indica éxito
     }
 }
+unsigned char* redimensionarMascara(unsigned char* mascara, int widthM, int heightM, int width, int height) {
+     unsigned char* mascaraRedimensionada = new unsigned char[width * height * 3];
+
+     // Redimensionar la máscara utilizando una interpolación simple (bilineal)
+     for (int y = 0; y < height; ++y) {
+         for (int x = 0; x < width; ++x) {
+             // Interpolación simple, toma el píxel más cercano
+             int srcX = (x * widthM) / width;
+             int srcY = (y * heightM) / height;
+             int srcIndex = (srcY * widthM + srcX) * 3;
+             int destIndex = (y * width + x) * 3;
+
+             mascaraRedimensionada[destIndex] = mascara[srcIndex];
+             mascaraRedimensionada[destIndex + 1] = mascara[srcIndex + 1];
+             mascaraRedimensionada[destIndex + 2] = mascara[srcIndex + 2];
+         }
+     }
+
+     return mascaraRedimensionada;
+ }
