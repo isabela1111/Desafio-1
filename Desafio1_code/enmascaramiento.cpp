@@ -2,35 +2,29 @@
 #include <QFile>
 #include <QString>
 #include <iostream>
+#include <qdebug>
 #include <fstream>
 #include <cstring>
 using namespace std;
-// Verificación del enmascaramiento S(k) = ID(k+s) + M(k) mod 256
-bool verificarEnmascaramiento(
-    unsigned char* imagenTransformada, // Arreglo de los bytes RGB de la imagen después de ser transformada (XOR, Desplazamiento o Rotación)
-    unsigned char* mascara, // Arreglo de los bytes RGB de la máscara M.bmp
-    unsigned int* datosEnmascarados, // Arreglo con los valores RGB del .txt a comparar
-    int seed, // Semilla S que está en la primera línea del .txt que se está comparando
-    int mascaraSize, // Cantidad total de bytes que hay en la máscara M.bmp
-    int totalSizeImagen) // Tamaño total de la imagen transformada (en bytes)
+
+
+bool verificarEnmascaramiento(unsigned char* imagenTransformada, unsigned char* mascara,
+                              unsigned int* datosEnmascarados, int seed, int mascaraSize, int totalSizeImagen)
 {
-    // Verifica que no se intente acceder fuera del arreglo de la imagen transformada
     if (seed + mascaraSize > totalSizeImagen) {
-        return false; // Si la semilla y la máscara exceden el tamaño de la imagen, se devuelve false
+        return false;
     }
 
-    // Compara byte por byte: (imagenTransformada[k + seed] + mascara[k]) mod 256 debe ser igual al dato esperado
-    for (int i = 0; i < mascaraSize; i++) {
-        // Aplica la fórmula (imagenTransformada + mascara) mod 256
-        int suma = (imagenTransformada[i + seed] + mascara[i]) & 0xFF;  // ← mod 256
+    for (int i = 0; i < mascaraSize; ++i) {
+        int suma_real = imagenTransformada[seed + i] + mascara[i];
+        int suma_esperada = datosEnmascarados[i];
 
-        // Si la suma no es igual a los datos enmascarados esperados, no es la transformación correcta
-        if (suma != (int)datosEnmascarados[i]) {
-            return false; // Si un solo valor no coincide, la transformación no es correcta
+        if (suma_real != suma_esperada) {
+            return false;
         }
     }
 
-    return true; // Si todos los valores coinciden, la transformación es correcta
+    return true;
 }
 
 
@@ -117,7 +111,7 @@ char** detectarArchivosDeEnmascaramiento(const QString& carpeta, int& cantidad) 
     cantidad = 0; // Contador de archivos encontrados
 
     // Bucle infinito que va probando con M1.txt, M2.txt, etc... ya que tenemos el patrón de que las pistas son nombradas como M junto al número de su orden
-    for (int i = 1;; ++i) {
+    for (int i = 0;; ++i) {
         // Crea el nombre del archivo como QString: "M1.txt", "M2.txt", etc...
         QString nombre = QString("M%1.txt").arg(i);
 

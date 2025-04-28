@@ -68,27 +68,21 @@ void aplicarRotacionIzquierda(unsigned char* imagen, int bits, int size) {
     }
 }
 
-
-// Verifica si la transformación aplicada es correcta comparando el resultado con los datos esperados del .txt
 bool verificarTransformacionCorrecta(
-    unsigned char* imagenTransformada,  // Imagen luego de aplicar una operaccion bit a bit
-    unsigned char* mascara,             // Imagen máscara (M.bmp), misma dimensión que la original
-    unsigned int* datosEnmascarados,    // Datos RGB esperados del .txt (después de aplicar S(k) = ID(k+s) + M(k))
-    int seed,                           // Semilla que indica desde dónde empezar en la imagen transformada
-    int mascaraSize,                    // Cantidad total de bytes (RGB) en la máscara
-    int totalSizeImagen                 // Tamaño total de la imagen transformada (en bytes)
+    unsigned char* imagenTransformada,
+    unsigned char* mascara,
+    unsigned int* datosEnmascarados,
+    int seed,
+    int mascaraSize,
+    int totalSizeImagen
     ) {
-    // Verifica que no se intente acceder fuera del arreglo de la imagen transformada
     if (seed + mascaraSize > totalSizeImagen) {
         return false;
     }
 
-    // Compara byte por byte: (imagenTransformada[k + seed] + mascara[k]) debe ser igual al dato esperado
     for (int i = 0; i < mascaraSize; i++) {
-        int suma = imagenTransformada[i + seed] + mascara[i];
-
+        int suma = (imagenTransformada[i + seed] + mascara[i]) & 0xFF;
         if (suma != (int)datosEnmascarados[i]) {
-            // Si un solo valor no coincide, no es la transformación correcta
             return false;
         }
     }
@@ -96,54 +90,67 @@ bool verificarTransformacionCorrecta(
     return true;
 }
 
-void probarTransformaciones(unsigned char* imagenTransformada, unsigned char* mascara,
-                            int width, int height, int totalSize,
-                            unsigned int* datos, int seed, int mascaraSize,
+void probarTransformaciones(unsigned char* imagenTransformada, unsigned char* imagenIM, unsigned char* mascara,
+                            int width, int height, int totalSize,unsigned int* datos, int seed, int mascaraSize,
                             const char* nombreArchivoTXT)
 {
     unsigned char* copia = new unsigned char[totalSize];
 
-    // XOR
+    // 1. Probar XOR
     memcpy(copia, imagenTransformada, totalSize);
-    aplicarXOR(copia, mascara, copia, totalSize);
-    if (verificarTransformacionCorrecta(copia, mascara, datos, seed, mascaraSize, totalSize)) {
+    aplicarXOR(copia, imagenIM, copia, totalSize);
+    if (verificarEnmascaramiento(copia, mascara, datos, seed, mascaraSize, totalSize)) {
         memcpy(imagenTransformada, copia, totalSize);
         delete[] copia;
+        qDebug() << "Transformación encontrada: XOR para" << nombreArchivoTXT;
         return;
     }
 
-    //Se crea un bucle para que analice a cuantos bits se desplazo o se roto la imagen de acuerdo .txt
-    for (int bits = 1; bits <= 8; ++bits) {
-        memcpy(copia, imagenTransformada, totalSize);
-        aplicarRotacionDerecha(copia, bits, totalSize);
-        if (verificarEnmascaramiento(copia, mascara, datos, seed, mascaraSize, totalSize)) {
-            memcpy(imagenTransformada, copia, totalSize);
-            delete[] copia;
-            break;
-        }
+    // 2. Probar Rotaciones y Desplazamientos
+    for (int bits = 1; bits <= 7; ++bits) {
+
+        // Rotación Izquierda
         memcpy(copia, imagenTransformada, totalSize);
         aplicarRotacionIzquierda(copia, bits, totalSize);
         if (verificarEnmascaramiento(copia, mascara, datos, seed, mascaraSize, totalSize)) {
             memcpy(imagenTransformada, copia, totalSize);
             delete[] copia;
-            break;
+            qDebug() << "Transformación encontrada: Rotación Izquierda" << bits << "bits para" << nombreArchivoTXT;
+            return;
         }
+
+        // Rotación Derecha
         memcpy(copia, imagenTransformada, totalSize);
-        aplicarDesplaDerecha(copia, bits, totalSize);
+        aplicarRotacionDerecha(copia, bits, totalSize);
         if (verificarEnmascaramiento(copia, mascara, datos, seed, mascaraSize, totalSize)) {
             memcpy(imagenTransformada, copia, totalSize);
             delete[] copia;
-            break;
+            qDebug() << "Transformación encontrada: Rotación Derecha" << bits << "bits para" << nombreArchivoTXT;
+            return;
         }
+
+        // Desplazamiento Izquierda
         memcpy(copia, imagenTransformada, totalSize);
         aplicarDesplaIzquierda(copia, bits, totalSize);
         if (verificarEnmascaramiento(copia, mascara, datos, seed, mascaraSize, totalSize)) {
             memcpy(imagenTransformada, copia, totalSize);
             delete[] copia;
-            break;
+            qDebug() << "Transformación encontrada: Desplazamiento Izquierda" << bits << "bits para" << nombreArchivoTXT;
+            return;
+        }
+
+        // Desplazamiento Derecha
+        memcpy(copia, imagenTransformada, totalSize);
+        aplicarDesplaDerecha(copia, bits, totalSize);
+        if (verificarEnmascaramiento(copia, mascara, datos, seed, mascaraSize, totalSize)) {
+            memcpy(imagenTransformada, copia, totalSize);
+            delete[] copia;
+            qDebug() << "Transformación encontrada: Desplazamiento Derecha" << bits << "bits para" << nombreArchivoTXT;
+            return;
         }
     }
 
-    qDebug() << "Ninguna transformación válida encontrada para" << nombreArchivoTXT;
+    // Si ninguna transformación funcionó
+    qDebug() << " Ninguna transformación válida encontrada para" << nombreArchivoTXT;
     delete[] copia;
 }
